@@ -1,0 +1,40 @@
+version: '3.8'
+networks:
+  sparkliving-network:
+    external: true
+services:
+  mysql:
+    build:
+      context: .
+      dockerfile: ./Dockerfile-mysql
+    container_name: sliv_cms_mysql
+    command: --default-authentication-plugin=mysql_native_password
+    # command: mysqld --user=root
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/initdb.d:/docker-entrypoint-initdb.d'
+
+    ports:
+      - ${MYSQL_PORT}:3306
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      timeout: 5s
+      retries: 10
+    networks:
+      sparkliving-network: {}
+
+  adminer:
+    image: adminer
+    container_name: sliv_cms_adminer
+    # restart: always
+    ports:
+      - 8888:8080
+    networks:
+      sparkliving-network: {}
